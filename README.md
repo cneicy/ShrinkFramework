@@ -144,4 +144,4 @@ Assets/Scripts/
 
 ---
 
-> 更多详细用法请参考各模块子文档：[事件管理](Events/README.md) | [输入系统](Input/README.md) | [本地化](Localization/README.md) | [对象池](ObjectPool/README.md) | [宽高适配](ScreenAspect/README.md) | [单例](Singleton/README.md)
+> 更多详细用法请参考各模块子文档：[事件管理](Scripts/Events/README.md) | [输入系统](Scripts/Input/README.md) | [本地化](Scripts/Localization/README.md) | [对象池](Scripts/ObjectPool/README.md) | [宽高适配](Scripts/ScreenAspect/README.md) | [单例](Scripts/Singleton/README.md)
