@@ -8,7 +8,7 @@
 📖 文档见各模块下README | 
 [💡 提交Issue](https://github.com/cneicy/ShrinkFramework/issues)
 
-_本仓库所有此README由Deepseek生成，某些功能别信它吹得这么邪乎，我自己的水平我还是有底的。_
+_本仓库所有README由Deepseek生成，某些功能别信它吹得这么邪乎，我自己的水平我还是有底的。_
 ## 核心功能
 
 | 模块 | 功能亮点 | 关键特性 |
