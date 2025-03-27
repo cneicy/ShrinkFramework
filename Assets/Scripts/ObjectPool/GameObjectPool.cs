@@ -8,19 +8,17 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Pool;
+using Object = UnityEngine.Object;
 
 namespace ObjectPool
 {
-    public class GameObjectPool<T> : IObjectPool, IDisposable where T : MonoBehaviour
+    public class GameObjectPool<T> : IObjectPool where T : MonoBehaviour
     {
-        private readonly ObjectPool<T> _pool;
-        private readonly T _prefab;
-        private readonly Transform _poolRoot;
-        private readonly Queue<T> _activeObjects = new();
-        private readonly List<T> _allCreatedObjects = new();
+        private readonly List<T> _activeObjects = new();
         private readonly int _maxActiveObjects;
-
-        public Type ObjectType => typeof(T);
+        private readonly ObjectPool<T> _pool;
+        private readonly Transform _poolRoot;
+        private readonly T _prefab;
 
         public GameObjectPool(T prefab, Transform poolRoot, int defaultCapacity = 10, int maxSize = 20)
         {
@@ -41,42 +39,52 @@ namespace ObjectPool
                 maxSize
             );
         }
+        
+
+        public Type ObjectType => typeof(T);
+
+        MonoBehaviour IObjectPool.Get(Transform parent)
+        {
+            return Get(parent);
+        }
+
+        void IObjectPool.Release(MonoBehaviour obj)
+        {
+            Release(obj as T);
+        }
 
         private T CreatePooledItem()
         {
-            var instance = UnityEngine.Object.Instantiate(_prefab, _poolRoot);
+            var instance = Object.Instantiate(_prefab, _poolRoot);
             instance.gameObject.SetActive(false);
-            _allCreatedObjects.Add(instance);
             return instance;
         }
 
         private void OnTakeFromPool(T obj)
         {
             obj.gameObject.SetActive(true);
+            _activeObjects.Add(obj);
             MaintainActiveObjectsLimit();
-            _activeObjects.Enqueue(obj);
         }
 
         private void OnReturnedToPool(T obj)
         {
             obj.gameObject.SetActive(false);
             obj.transform.SetParent(_poolRoot);
+            _activeObjects.Remove(obj);
         }
 
         private void OnDestroyPoolObject(T obj)
         {
-            _allCreatedObjects.Remove(obj);
-            if (obj)
-            {
-                UnityEngine.Object.Destroy(obj.gameObject);
-            }
+            if (obj) Object.Destroy(obj.gameObject);
         }
 
         private void MaintainActiveObjectsLimit()
         {
-            while (_activeObjects.Count >= _maxActiveObjects)
+            while (_activeObjects.Count > _maxActiveObjects)
             {
-                var oldest = _activeObjects.Dequeue();
+                var oldest = _activeObjects[0];
+                _activeObjects.RemoveAt(0);
                 _pool.Release(oldest);
             }
         }
@@ -89,28 +97,9 @@ namespace ObjectPool
             return item;
         }
 
-        public void Release(T obj) => _pool.Release(obj);
-
-        public void Dispose()
+        public void Release(T obj)
         {
-            // 强制回收所有活跃对象
-            while (_activeObjects.Count > 0)
-            {
-                var obj = _activeObjects.Dequeue();
-                _pool.Release(obj);
-            }
-
-            // 销毁所有已创建对象
-            foreach (var obj in _allCreatedObjects.ToArray())
-            {
-                OnDestroyPoolObject(obj);
-            }
-
-            _allCreatedObjects.Clear();
-            _pool?.Dispose();
+            _pool.Release(obj);
         }
-
-        MonoBehaviour IObjectPool.Get(Transform parent) => Get(parent);
-        void IObjectPool.Release(MonoBehaviour obj) => Release(obj as T);
     }
 }
