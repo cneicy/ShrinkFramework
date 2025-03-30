@@ -50,7 +50,14 @@ namespace ObjectPool
 
         void IObjectPool.Release(MonoBehaviour obj)
         {
-            Release(obj as T);
+            if (obj is T target)
+            {
+                Release(target);
+            }
+            else
+            {
+                Debug.LogError($"无法将类型 {obj.GetType()} 转换为 {typeof(T)}");
+            }
         }
 
         private T CreatePooledItem()
