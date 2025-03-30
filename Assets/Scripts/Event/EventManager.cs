@@ -35,15 +35,31 @@ namespace Event
             }
         }
         
-        public object TriggerEvent<T>(string eventName, T args)
+        public List<object> TriggerEvent<T>(string eventName, T args)
         {
-            if (!_eventHandlers.TryGetValue(eventName, out var eventHandler)) return null;
-            if (eventHandler is Func<T, object> handler)
-            {
-                return handler(args);
-            }
+            if (!_eventHandlers.TryGetValue(eventName, out var eventHandler))
+                return new List<object>();
 
-            return null;
+            var results = new List<object>();
+            foreach (var handler in eventHandler.GetInvocationList())
+            {
+                if (handler is Func<T, object> typedHandler)
+                {
+                    try 
+                    {
+                        results.Add(typedHandler(args));
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.LogError($"执行事件 {eventName} 时发生异常: {ex}");
+                    }
+                }
+                else
+                {
+                    Debug.LogError($"事件 {eventName} 的处理程序类型不匹配");
+                }
+            }
+            return results;
         }
 
         
